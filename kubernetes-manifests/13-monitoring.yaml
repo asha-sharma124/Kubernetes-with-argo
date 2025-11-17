@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring
+  namespace: piggymetrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitoring
+  template:
+    metadata:
+      labels:
+        app: monitoring
+    spec:
+      containers:
+      - name: monitoring
+        image: sqshq/piggymetrics-monitoring
+        ports:
+        - containerPort: 8080
+        env:
+        - name: CONFIG_SERVICE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: CONFIG_SERVICE_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring
+  namespace: piggymetrics
+spec:
+  selector:
+    app: monitoring
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: NodePort

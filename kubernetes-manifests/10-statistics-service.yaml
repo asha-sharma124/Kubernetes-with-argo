@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statistics-service
+  namespace: piggymetrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statistics-service
+  template:
+    metadata:
+      labels:
+        app: statistics-service
+    spec:
+      containers:
+      - name: statistics-service
+        image: sqshq/piggymetrics-statistics-service
+        ports:
+        - containerPort: 7000
+        env:
+        - name: CONFIG_SERVICE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: CONFIG_SERVICE_PASSWORD
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: MONGODB_PASSWORD
+        - name: STATISTICS_SERVICE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: STATISTICS_SERVICE_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: statistics-service
+  namespace: piggymetrics
+spec:
+  selector:
+    app: statistics-service
+  ports:
+  - port: 7000
+    targetPort: 7000
+  type: ClusterIP

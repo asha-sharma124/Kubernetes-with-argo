@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-service
+  namespace: piggymetrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-service
+  template:
+    metadata:
+      labels:
+        app: account-service
+    spec:
+      containers:
+      - name: account-service
+        image: sqshq/piggymetrics-account-service
+        ports:
+        - containerPort: 6000
+        env:
+        - name: CONFIG_SERVICE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: CONFIG_SERVICE_PASSWORD
+        - name: ACCOUNT_SERVICE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: ACCOUNT_SERVICE_PASSWORD
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: MONGODB_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: account-service
+  namespace: piggymetrics
+spec:
+  selector:
+    app: account-service
+  ports:
+  - port: 6000
+    targetPort: 6000
+  type: ClusterIP

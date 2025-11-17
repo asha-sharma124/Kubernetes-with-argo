@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: turbine-stream-service
+  namespace: piggymetrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: turbine-stream-service
+  template:
+    metadata:
+      labels:
+        app: turbine-stream-service
+    spec:
+      containers:
+      - name: turbine-stream-service
+        image: sqshq/piggymetrics-turbine-stream-service
+        ports:
+        - containerPort: 8989
+        env:
+        - name: CONFIG_SERVICE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: CONFIG_SERVICE_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: turbine-stream-service
+  namespace: piggymetrics
+spec:
+  selector:
+    app: turbine-stream-service
+  ports:
+  - port: 8989
+    targetPort: 8989
+  type: ClusterIP

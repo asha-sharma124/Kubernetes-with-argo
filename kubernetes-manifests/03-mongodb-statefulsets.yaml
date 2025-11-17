@@ -1,0 +1,160 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: auth-mongodb
+  namespace: piggymetrics
+spec:
+  serviceName: auth-mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-mongodb
+  template:
+    metadata:
+      labels:
+        app: auth-mongodb
+    spec:
+      containers:
+      - name: auth-mongodb
+        image: sqshq/piggymetrics-mongodb
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: MONGODB_PASSWORD
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: account-mongodb
+  namespace: piggymetrics
+spec:
+  serviceName: account-mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-mongodb
+  template:
+    metadata:
+      labels:
+        app: account-mongodb
+    spec:
+      containers:
+      - name: account-mongodb
+        image: sqshq/piggymetrics-mongodb
+        ports:
+        - containerPort: 27017
+        env:
+        - name: INIT_DUMP
+          value: "account-service-dump.js"
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: MONGODB_PASSWORD
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statistics-mongodb
+  namespace: piggymetrics
+spec:
+  serviceName: statistics-mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statistics-mongodb
+  template:
+    metadata:
+      labels:
+        app: statistics-mongodb
+    spec:
+      containers:
+      - name: statistics-mongodb
+        image: sqshq/piggymetrics-mongodb
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: MONGODB_PASSWORD
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: notification-mongodb
+  namespace: piggymetrics
+spec:
+  serviceName: notification-mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-mongodb
+  template:
+    metadata:
+      labels:
+        app: notification-mongodb
+    spec:
+      containers:
+      - name: notification-mongodb
+        image: sqshq/piggymetrics-mongodb
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: piggymetrics-config
+              key: MONGODB_PASSWORD
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
