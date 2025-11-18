@@ -785,7 +785,17 @@ spec:
       - name: workspace
         mountPath: /workspace
 
-     
+  - name: verify-clone
+    container:
+      image: alpine
+      command: [sh, -c]
+      args:
+      - |
+        ls -la /workspace/source
+      volumeMounts:
+      - name: workspace
+        mountPath: /workspace
+
   - name: git-commit-push
     container:
       image: alpine/git:latest

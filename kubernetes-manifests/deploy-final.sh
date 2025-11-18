@@ -23,7 +23,7 @@ echo "Deploying config service..."
 kubectl apply -f 06-config-service.yaml
 
 echo "Waiting for config service to be ready..."
-kubectl wait --for=condition=available deployment/config -n piggymetrics --timeout=300s
+kubectl wait --for=condition=available deployment/config-service -n piggymetrics --timeout=300s
 
 # Wait for config service to be actually serving requests
 echo "Waiting for config service to serve requests..."

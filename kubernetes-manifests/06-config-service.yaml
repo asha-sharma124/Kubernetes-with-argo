@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: config
+  name: config-service
   namespace: piggymetrics
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: config
+      app: config-service
   template:
     metadata:
       labels:
-        app: config
+        app: config-service
     spec:
       containers:
       - name: config-service
@@ -43,11 +43,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: config
+  name: config-service
   namespace: piggymetrics
 spec:
   selector:
-    app: config
+    app: config-service
   ports:
   - port: 8888
     targetPort: 8888
