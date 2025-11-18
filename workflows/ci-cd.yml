@@ -437,52 +437,52 @@ spec:
       args:
       - |
         apk add --no-cache sed findutils
-        
+
         cd /workspace/source
 
         echo "=== Current image references BEFORE update ==="
         grep -r "image:" kubernetes-manifests || echo "No image references found!"
 
-
-        
-        echo "=== Updating Kubernetes manifests with new images ==="
+        echo ""
+        echo "=== Updating image tags in manifests ==="
         REGISTRY="{{workflow.parameters.docker-registry}}"
         TAG="{{workflow.parameters.commit-sha}}"
-        
+
         MANIFEST_DIR="/workspace/source/kubernetes-manifests"
-        
+
         if [ ! -d "$MANIFEST_DIR" ]; then
           echo "ERROR: Manifest directory not found: $MANIFEST_DIR"
           echo "Available directories:"
           ls -la /workspace/source/
           exit 1
         fi
-        
-        echo "Updating image tags in all YAML files..."
-        
-        # Update all service images
+
         find $MANIFEST_DIR -type f \( -name "*.yaml" -o -name "*.yml" \) | while read file; do
           echo "Processing: $file"
-          
-          # Update images for each service
-          sed -i "s|image: *.*piggymetrics-config[:].*|image: $REGISTRY/piggymetrics-config:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-registry[:].*|image: $REGISTRY/piggymetrics-registry:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-gateway.*|image: $REGISTRY/piggymetrics-gateway:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-auth-service[:].*|image: $REGISTRY/piggymetrics-auth-service:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-account-service[:].*|image: $REGISTRY/piggymetrics-account-service:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-statistics-service[:].*|image: $REGISTRY/piggymetrics-statistics-service:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-notification-service[:].*|image: $REGISTRY/piggymetrics-notification-service:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-monitoring[:].*|image: $REGISTRY/piggymetrics-monitoring:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-turbine-stream-service[:].*|image: $REGISTRY/piggymetrics-turbine-stream-service:$TAG|g" "$file"
+
+          sed -i "s|image: *.*piggymetrics-config:.*|image: $REGISTRY/piggymetrics-config:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-registry:.*|image: $REGISTRY/piggymetrics-registry:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-gateway:.*|image: $REGISTRY/piggymetrics-gateway:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-auth-service:.*|image: $REGISTRY/piggymetrics-auth-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-account-service:.*|image: $REGISTRY/piggymetrics-account-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-statistics-service:.*|image: $REGISTRY/piggymetrics-statistics-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-notification-service:.*|image: $REGISTRY/piggymetrics-notification-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-monitoring:.*|image: $REGISTRY/piggymetrics-monitoring:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-turbine-stream-service:.*|image: $REGISTRY/piggymetrics-turbine-stream-service:$TAG|g" "$file"
         done
-        
+
         echo ""
-        echo "=== Manifest files updated successfully ==="
-        echo "Showing updated images:"
-        grep -r "image:.*$REGISTRY" $MANIFEST_DIR | head -10
-      volumeMounts:
-      - name: workspace
-        mountPath: /workspace
+        echo "=== Current image references AFTER update ==="
+        grep -r "image:" $MANIFEST_DIR || echo "No image references found!"
+
+        echo ""
+        echo "=== Git diff output to show manifest changes ==="
+        git diff $MANIFEST_DIR || echo "No changes detected in manifests"
+
+        echo ""
+        echo "=== Manifest update completed ==="
+
+        
 
   # Git commit and push template
   - name: git-commit-push
