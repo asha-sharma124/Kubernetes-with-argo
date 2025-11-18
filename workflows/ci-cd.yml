@@ -1,3 +1,243 @@
+# apiVersion: argoproj.io/v1alpha1
+# kind: WorkflowTemplate
+# metadata:
+#   name: piggymetrics-cicd
+#   namespace: argo-events
+# spec:
+#   entrypoint: main
+
+#   serviceAccountName: argo-events-sa
+  
+#   arguments:
+#     parameters:
+#     - name: repo-url
+#       value: "https://github.com/asha-sharma124/Kubernetes-with-argo.git"
+#     - name: branch
+#       value: "main"
+#     - name: docker-registry
+#       value: "asha515"
+#     - name: commit-sha
+#       value: "latest"
+  
+#   volumeClaimTemplates:
+#   - metadata:
+#       name: workspace
+#     spec:
+#       accessModes: ["ReadWriteOnce"]
+#       resources:
+#         requests:
+#           storage: 10Gi
+  
+#   templates:
+#   - name: main
+#     dag:
+#       tasks:
+#       - name: clone-repo
+#         template: git-clone
+      
+#       - name: build-config
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "config"
+#         depends: "clone-repo"
+      
+#       - name: build-registry
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "registry"
+#         depends: "clone-repo"
+      
+#       - name: build-gateway
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "gateway"
+#         depends: "clone-repo"
+      
+#       - name: build-auth-service
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "auth-service"
+#         depends: "clone-repo"
+      
+#       - name: build-account-service
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "account-service"
+#         depends: "clone-repo"
+      
+#       - name: build-statistics-service
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "statistics-service"
+#         depends: "clone-repo"
+      
+#       - name: build-notification-service
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "notification-service"
+#         depends: "clone-repo"
+      
+#       - name: build-monitoring
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "monitoring"
+#         depends: "clone-repo"
+      
+#       - name: build-turbine-stream
+#         template: build-and-push
+#         arguments:
+#           parameters:
+#           - name: service-name
+#             value: "turbine-stream-service"
+#         depends: "clone-repo"
+      
+#       - name: update-manifests
+#         template: update-kubernetes-manifests
+#         depends: "build-config && build-registry && build-gateway && build-auth-service && build-account-service && build-statistics-service && build-notification-service && build-monitoring && build-turbine-stream"
+      
+#       - name: commit-and-push
+#         template: git-commit-push
+#         depends: "update-manifests"
+
+#   - name: git-clone
+#     container:
+#       image: alpine/git:latest
+#       command: [sh, -c]
+#       args:
+#       - |
+#         echo "Cloning repository: {{workflow.parameters.repo-url}}"
+#         git clone --depth 1 --branch {{workflow.parameters.branch}} {{workflow.parameters.repo-url}} /workspace/source
+#         cd /workspace/source
+#         echo "Repository cloned successfully"
+#         ls -la
+#       volumeMounts:
+#       - name: workspace
+#         mountPath: /workspace
+
+#   - name: build-and-push
+#     inputs:
+#       parameters:
+#       - name: service-name
+#     container:
+#       image: gcr.io/kaniko-project/executor:latest
+#       args:
+#       - --dockerfile=/workspace/source/{{inputs.parameters.service-name}}/Dockerfile
+#       - --context=/workspace/source/{{inputs.parameters.service-name}}
+#       - --destination={{workflow.parameters.docker-registry}}/piggymetrics-{{inputs.parameters.service-name}}:{{workflow.parameters.commit-sha}}
+#       - --destination={{workflow.parameters.docker-registry}}/piggymetrics-{{inputs.parameters.service-name}}:latest
+#       - --cache=true
+#       - --cache-ttl=24h
+#       volumeMounts:
+#       - name: workspace
+#         mountPath: /workspace
+#       - name: docker-config
+#         mountPath: /kaniko/.docker
+
+#   - name: update-kubernetes-manifests
+#     container:
+#       image: alpine/git:latest
+#       command: [sh, -c]
+#       args:
+#       - |
+#         apk add --no-cache sed findutils
+        
+#         cd /workspace/source
+        
+#         echo "=== Updating Kubernetes manifests with new images ==="
+#         REGISTRY="{{workflow.parameters.docker-registry}}"
+#         TAG="{{workflow.parameters.commit-sha}}"
+        
+#         MANIFEST_DIR="/workspace/source/kubernetes-manifests"
+        
+#         if [ ! -d "$MANIFEST_DIR" ]; then
+#           echo "ERROR: Manifest directory not found: $MANIFEST_DIR"
+#           echo "Available directories:"
+#           ls -la /workspace/source/
+#           exit 1
+#         fi
+        
+#         echo "Updating image tags in all YAML files..."
+        
+#         # Update all service images
+#         find $MANIFEST_DIR -type f \( -name "*.yaml" -o -name "*.yml" \) | while read file; do
+#           echo "Processing: $file"
+          
+#           # Update images for each service
+#           sed -i "s|image:.*piggymetrics-config[:].*|image: $REGISTRY/piggymetrics-config:$TAG|g" "$file"
+#           sed -i "s|image:.*piggymetrics-registry[:].*|image: $REGISTRY/piggymetrics-registry:$TAG|g" "$file"
+#           sed -i "s|image:.*piggymetrics-gateway[:].*|image: $REGISTRY/piggymetrics-gateway:$TAG|g" "$file"
+#           sed -i "s|image:.*piggymetrics-auth-service[:].*|image: $REGISTRY/piggymetrics-auth-service:$TAG|g" "$file"
+#           sed -i "s|image:.*piggymetrics-account-service[:].*|image: $REGISTRY/piggymetrics-account-service:$TAG|g" "$file"
+#           sed -i "s|image:.*piggymetrics-statistics-service[:].*|image: $REGISTRY/piggymetrics-statistics-service:$TAG|g" "$file"
+#           sed -i "s|image:.*piggymetrics-notification-service[:].*|image: $REGISTRY/piggymetrics-notification-service:$TAG|g" "$file"
+#           sed -i "s|image:.*piggymetrics-monitoring[:].*|image: $REGISTRY/piggymetrics-monitoring:$TAG|g" "$file"
+#           sed -i "s|image:.*piggymetrics-turbine-stream-service[:].*|image: $REGISTRY/piggymetrics-turbine-stream-service:$TAG|g" "$file"
+#         done
+        
+#         echo ""
+#         echo "=== Manifest files updated successfully ==="
+#         echo "Showing updated images:"
+#         grep -r "image:.*$REGISTRY" $MANIFEST_DIR | head -10
+#       volumeMounts:
+#       - name: workspace
+#         mountPath: /workspace
+
+#   - name: git-commit-push
+#     container:
+#       image: alpine/git:latest
+#       command: [sh, -c]
+#       args:
+#       - |
+#         apk add --no-cache openssh-client
+        
+#         cd /workspace/source
+        
+#         echo "=== Committing manifest changes ==="
+        
+#         git config --global user.email "ci-bot@argoci.local"
+#         git config --global user.name "Argo CI Bot"
+        
+#         git add kubernetes-manifests/
+        
+#         if git diff --cached --quiet; then
+#           echo "No changes to commit"
+#           exit 0
+#         fi
+        
+#         git commit -m "CI: Update image tags to {{workflow.parameters.commit-sha}}"
+        
+#         echo "✓ Changes committed locally"
+#         echo "To push to remote, configure Git credentials"
+        
+#         # Uncomment below if you want to push (requires Git credentials)
+#         # git push origin {{workflow.parameters.branch}}
+#       volumeMounts:
+#       - name: workspace
+#         mountPath: /workspace
+  
+#   volumes:
+#   - name: docker-config
+#     secret:
+#       secretName: docker-registry-secret
+#       items:
+#       - key: .dockerconfigjson
+#         path: config.json
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
@@ -35,13 +275,19 @@ spec:
       - name: clone-repo
         template: git-clone
       
+      # Maven build step - runs after clone, before Docker builds
+      - name: maven-build-all
+        template: maven-build
+        depends: "clone-repo"
+      
+      # All Docker builds depend on Maven build
       - name: build-config
         template: build-and-push
         arguments:
           parameters:
           - name: service-name
             value: "config"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: build-registry
         template: build-and-push
@@ -49,7 +295,7 @@ spec:
           parameters:
           - name: service-name
             value: "registry"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: build-gateway
         template: build-and-push
@@ -57,7 +303,7 @@ spec:
           parameters:
           - name: service-name
             value: "gateway"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: build-auth-service
         template: build-and-push
@@ -65,7 +311,7 @@ spec:
           parameters:
           - name: service-name
             value: "auth-service"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: build-account-service
         template: build-and-push
@@ -73,7 +319,7 @@ spec:
           parameters:
           - name: service-name
             value: "account-service"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: build-statistics-service
         template: build-and-push
@@ -81,7 +327,7 @@ spec:
           parameters:
           - name: service-name
             value: "statistics-service"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: build-notification-service
         template: build-and-push
@@ -89,7 +335,7 @@ spec:
           parameters:
           - name: service-name
             value: "notification-service"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: build-monitoring
         template: build-and-push
@@ -97,7 +343,7 @@ spec:
           parameters:
           - name: service-name
             value: "monitoring"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: build-turbine-stream
         template: build-and-push
@@ -105,7 +351,7 @@ spec:
           parameters:
           - name: service-name
             value: "turbine-stream-service"
-        depends: "clone-repo"
+        depends: "maven-build-all"
       
       - name: update-manifests
         template: update-kubernetes-manifests
@@ -115,6 +361,7 @@ spec:
         template: git-commit-push
         depends: "update-manifests"
 
+  # Git clone template
   - name: git-clone
     container:
       image: alpine/git:latest
@@ -130,6 +377,39 @@ spec:
       - name: workspace
         mountPath: /workspace
 
+  # NEW: Maven build template
+  - name: maven-build
+    container:
+      image: maven:3.6.3-jdk-8
+      command: [sh, -c]
+      args:
+      - |
+        cd /workspace/source
+        
+        echo "=== Starting Maven build for all modules ==="
+        echo "Current directory: $(pwd)"
+        echo ""
+        
+        echo "=== Building entire multi-module project ==="
+        mvn clean package -DskipTests
+        
+        if [ $? -eq 0 ]; then
+          echo ""
+          echo "=== Maven build completed successfully ==="
+          echo ""
+          echo "=== Built artifacts (JARs) ==="
+          find . -type f -name "*.jar" -path "*/target/*" | while read jar; do
+            echo "  - $jar ($(du -h "$jar" | cut -f1))"
+          done
+        else
+          echo "ERROR: Maven build failed"
+          exit 1
+        fi
+      volumeMounts:
+      - name: workspace
+        mountPath: /workspace
+
+  # Docker build and push template
   - name: build-and-push
     inputs:
       parameters:
@@ -149,6 +429,7 @@ spec:
       - name: docker-config
         mountPath: /kaniko/.docker
 
+  # Update Kubernetes manifests template
   - name: update-kubernetes-manifests
     container:
       image: alpine/git:latest
@@ -198,6 +479,7 @@ spec:
       - name: workspace
         mountPath: /workspace
 
+  # Git commit and push template
   - name: git-commit-push
     container:
       image: alpine/git:latest

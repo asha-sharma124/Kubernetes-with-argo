@@ -6,7 +6,7 @@
 
 # EXPOSE 6000
 
-FROM openjdk:8-jre
+FROM eclipse-temurin:8-jre-alpine
 
 WORKDIR /app
 RUN mvn clean package -DskipTests
