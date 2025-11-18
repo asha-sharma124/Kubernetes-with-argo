@@ -482,7 +482,10 @@ spec:
         echo ""
         echo "=== Manifest update completed ==="
 
-        
+      volumeMounts:
+      - name: workspace
+        mountPath: /workspace
+
 
   # Git commit and push template
   - name: git-commit-push
