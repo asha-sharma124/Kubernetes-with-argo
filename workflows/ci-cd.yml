@@ -480,38 +480,53 @@ spec:
         mountPath: /workspace
 
   # Git commit and push template
-  - name: git-commit-push
-    container:
-      image: alpine/git:latest
-      command: [sh, -c]
-      args:
-      - |
-        apk add --no-cache openssh-client
-        
-        cd /workspace/source
-        
-        echo "=== Committing manifest changes ==="
-        
-        git config --global user.email "ci-bot@argoci.local"
-        git config --global user.name "Argo CI Bot"
-        
-        git add kubernetes-manifests/
-        
-        if git diff --cached --quiet; then
-          echo "No changes to commit"
-          exit 0
-        fi
-        
-        git commit -m "CI: Update image tags to {{workflow.parameters.commit-sha}}"
-        
-        echo "✓ Changes committed locally"
-        echo "To push to remote, configure Git credentials"
-        
-        # Uncomment below if you want to push (requires Git credentials)
-        # git push origin {{workflow.parameters.branch}}
-      volumeMounts:
-      - name: workspace
-        mountPath: /workspace
+- name: git-commit-push
+  container:
+    image: alpine/git:latest
+    command: [sh, -c]
+    args:
+    - |
+      apk add --no-cache openssh-client
+      
+      cd /workspace/source
+      
+      echo "=== Configuring Git credentials ==="
+      git config --global user.email "ci-bot@argoci.local"
+      git config --global user.name "Argo CI Bot"
+      
+      # Configure Git to use credentials from secret
+      git config --global credential.helper store
+      echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com" > ~/.git-credentials
+      
+      echo "=== Adding and committing manifest changes ==="
+      git add kubernetes-manifests/
+      
+      if git diff --cached --quiet; then
+        echo "No changes to commit"
+        exit 0
+      fi
+      
+      git commit -m "CI: Update image tags to {{workflow.parameters.commit-sha}}"
+      
+      echo "=== Pushing changes to GitHub ==="
+      git push origin {{workflow.parameters.branch}}
+      
+      echo "✓ Manifest changes pushed to GitHub successfully"
+    env:
+    - name: GIT_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: git-credentials
+          key: username
+    - name: GIT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: git-credentials
+          key: password
+    volumeMounts:
+    - name: workspace
+      mountPath: /workspace
+
   
   volumes:
   - name: docker-config
