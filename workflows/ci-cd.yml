@@ -439,6 +439,11 @@ spec:
         apk add --no-cache sed findutils
         
         cd /workspace/source
+
+        echo "=== Current image references BEFORE update ==="
+        grep -r "image:" kubernetes-manifests || echo "No image references found!"
+
+
         
         echo "=== Updating Kubernetes manifests with new images ==="
         REGISTRY="{{workflow.parameters.docker-registry}}"
@@ -460,15 +465,15 @@ spec:
           echo "Processing: $file"
           
           # Update images for each service
-          sed -i "s|image:.*piggymetrics-config[:].*|image: $REGISTRY/piggymetrics-config:$TAG|g" "$file"
-          sed -i "s|image:.*piggymetrics-registry[:].*|image: $REGISTRY/piggymetrics-registry:$TAG|g" "$file"
-          sed -i "s|image:.*piggymetrics-gateway[:].*|image: $REGISTRY/piggymetrics-gateway:$TAG|g" "$file"
-          sed -i "s|image:.*piggymetrics-auth-service[:].*|image: $REGISTRY/piggymetrics-auth-service:$TAG|g" "$file"
-          sed -i "s|image:.*piggymetrics-account-service[:].*|image: $REGISTRY/piggymetrics-account-service:$TAG|g" "$file"
-          sed -i "s|image:.*piggymetrics-statistics-service[:].*|image: $REGISTRY/piggymetrics-statistics-service:$TAG|g" "$file"
-          sed -i "s|image:.*piggymetrics-notification-service[:].*|image: $REGISTRY/piggymetrics-notification-service:$TAG|g" "$file"
-          sed -i "s|image:.*piggymetrics-monitoring[:].*|image: $REGISTRY/piggymetrics-monitoring:$TAG|g" "$file"
-          sed -i "s|image:.*piggymetrics-turbine-stream-service[:].*|image: $REGISTRY/piggymetrics-turbine-stream-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-config[:].*|image: $REGISTRY/piggymetrics-configs:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-registry[:].*|image: $REGISTRY/piggymetrics-registrys:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-gateway.*|image: $REGISTRY/piggymetrics-gateways:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-auth-service[:].*|image: $REGISTRY/piggymetrics-auth-services:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-account-service[:].*|image: $REGISTRY/piggymetrics-account-services:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-statistics-service[:].*|image: $REGISTRY/piggymetrics-statistics-services:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-notification-service[:].*|image: $REGISTRY/piggymetrics-notification-services:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-monitoring[:].*|image: $REGISTRY/piggymetrics-monitorings:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-turbine-stream-service[:].*|image: $REGISTRY/piggymetrics-turbine-stream-services:$TAG|g" "$file"
         done
         
         echo ""
@@ -480,52 +485,52 @@ spec:
         mountPath: /workspace
 
   # Git commit and push template
-- name: git-commit-push
-  container:
-    image: alpine/git:latest
-    command: [sh, -c]
-    args:
-    - |
-      apk add --no-cache openssh-client
-      
-      cd /workspace/source
-      
-      echo "=== Configuring Git credentials ==="
-      git config --global user.email "ci-bot@argoci.local"
-      git config --global user.name "Argo CI Bot"
-      
-      # Configure Git to use credentials from secret
-      git config --global credential.helper store
-      echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com" > ~/.git-credentials
-      
-      echo "=== Adding and committing manifest changes ==="
-      git add kubernetes-manifests/
-      
-      if git diff --cached --quiet; then
-        echo "No changes to commit"
-        exit 0
-      fi
-      
-      git commit -m "CI: Update image tags to {{workflow.parameters.commit-sha}}"
-      
-      echo "=== Pushing changes to GitHub ==="
-      git push origin {{workflow.parameters.branch}}
-      
-      echo "✓ Manifest changes pushed to GitHub successfully"
-    env:
-    - name: GIT_USERNAME
-      valueFrom:
-        secretKeyRef:
-          name: git-credentials
-          key: username
-    - name: GIT_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: git-credentials
-          key: password
-    volumeMounts:
-    - name: workspace
-      mountPath: /workspace
+  - name: git-commit-push
+    container:
+      image: alpine/git:latest
+      command: [sh, -c]
+      args:
+      - |
+        apk add --no-cache openssh-client
+        
+        cd /workspace/source
+        
+        echo "=== Configuring Git credentials ==="
+        git config --global user.email "ci-bot@argoci.local"
+        git config --global user.name "Argo CI Bot"
+        
+        # Configure Git to use credentials from secret
+        git config --global credential.helper store
+        echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com" > ~/.git-credentials
+        
+        echo "=== Adding and committing manifest changes ==="
+        git add kubernetes-manifests/
+        
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+          exit 0
+        fi
+        
+        git commit -m "CI: Update image tags to {{workflow.parameters.commit-sha}}"
+        
+        echo "=== Pushing changes to GitHub ==="
+        git push origin {{workflow.parameters.branch}}
+        
+        echo "✓ Manifest changes pushed to GitHub successfully"
+      env:
+      - name: GIT_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: git-credentials
+            key: username
+      - name: GIT_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: git-credentials
+            key: password
+      volumeMounts:
+      - name: workspace
+        mountPath: /workspace
 
   
   volumes:
