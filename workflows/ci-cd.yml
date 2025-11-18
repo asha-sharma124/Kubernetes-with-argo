@@ -739,12 +739,10 @@ spec:
         apk add --no-cache sed findutils
         
         cd /workspace/source
-        
         echo "=== Current image references BEFORE update ==="
         grep -r "image:" kubernetes-manifests || echo "No image references found!"
         
-        echo ""
-        echo "=== Updating image tags in manifests ==="
+        echo "=== Updating Kubernetes manifests with new images ==="
         REGISTRY="{{workflow.parameters.docker-registry}}"
         TAG="{{workflow.parameters.commit-sha}}"
         
@@ -757,6 +755,9 @@ spec:
           exit 1
         fi
         
+        echo "Updating image tags in all YAML files..."
+        
+        # Update all service images
         find $MANIFEST_DIR -type f \( -name "*.yaml" -o -name "*.yml" \) | while read file; do
           echo "Processing: $file"
           
@@ -770,21 +771,21 @@ spec:
           sed -i "s|image: *.*piggymetrics-monitoring.*|image: $REGISTRY/piggymetrics-monitoring:$TAG|g" "$file"
           sed -i "s|image: *.*piggymetrics-turbine-stream-service.*|image: $REGISTRY/piggymetrics-turbine-stream-service:$TAG|g" "$file"
         done
-        
         echo ""
+
+
+     
         echo "=== Current image references AFTER update ==="
         grep -r "image:" $MANIFEST_DIR || echo "No image references found!"
         
-        echo ""
-        echo "=== Git diff output to show manifest changes ==="
-        git diff $MANIFEST_DIR || echo "No changes detected in manifests"
-        
-        echo ""
-        echo "=== Manifest update completed ==="
+        echo "=== Manifest files updated successfully ==="
+        echo "Showing updated images:"
+        grep -r "image:.*$REGISTRY" $MANIFEST_DIR | head -10
       volumeMounts:
       - name: workspace
         mountPath: /workspace
 
+     
   - name: git-commit-push
     container:
       image: alpine/git:latest
