@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: account-service
-        image: sqshq/piggymetrics-account-service
+        image: asha515/piggymetrics-account-service:latest
         ports:
         - containerPort: 6000
         env:
