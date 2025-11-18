@@ -33,7 +33,7 @@ echo "Deploying registry..."
 kubectl apply -f 07-registry.yaml
 
 echo "Waiting for registry to be ready..."
-kubectl wait --for=condition=available deployment/registry -n piggymetrics --timeout=300s
+kubectl wait --for=condition=available deployment/registry-service -n piggymetrics --timeout=300s
 
 # Wait for registry to be ready
 sleep 60
