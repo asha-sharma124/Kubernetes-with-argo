@@ -40,15 +40,21 @@ sleep 60
 
 echo "Deploying microservices..."
 kubectl apply -f 08-auth-service.yaml
+echo "Waiting for auth service to be ready..."
+kubectl wait --for=condition=ready pod -l app=auth-service -n piggymetrics --timeout=300s
+
 kubectl apply -f 09-account-service.yaml
+echo "Waiting for account service to be ready..."
+kubectl wait --for=condition=ready pod -l app=account-service -n piggymetrics --timeout=300s
 kubectl apply -f 10-statistics-service.yaml
 kubectl apply -f 11-notification-service.yaml
 
 echo "Waiting for microservices to start..."
-sleep 90
+sleep 90s
 
 echo "Deploying gateway and monitoring..."
 kubectl apply -f 12-gateway.yaml
+
 kubectl apply -f 13-monitoring.yaml
 kubectl apply -f 14-turbine-stream.yaml
 
