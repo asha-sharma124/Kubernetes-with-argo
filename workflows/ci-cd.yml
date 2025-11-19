@@ -761,15 +761,15 @@ spec:
         find $MANIFEST_DIR -type f \( -name "*.yaml" -o -name "*.yml" \) | while read file; do
           echo "Processing: $file"
           
-          sed -i "s|image: *.*piggymetrics-config.*|image: $REGISTRY/piggymetrics-configs:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-registry.*|image: $REGISTRY/piggymetrics-registrys:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-gateway.*|image: $REGISTRY/piggymetrics-gateways:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-auth-service.*|image: $REGISTRY/piggymetrics-auth-services:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-account-service.*|image: $REGISTRY/piggymetrics-account-services:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-statistics-service.*|image: $REGISTRY/piggymetrics-statistics-services:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-notification-service.*|image: $REGISTRY/piggymetrics-notification-services:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-monitoring.*|image: $REGISTRY/piggymetrics-monitorings:$TAG|g" "$file"
-          sed -i "s|image: *.*piggymetrics-turbine-stream-service.*|image: $REGISTRY/piggymetrics-turbine-stream-services:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-config.*|image: $REGISTRY/piggymetrics-config:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-registry.*|image: $REGISTRY/piggymetrics-registry:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-gateway.*|image: $REGISTRY/piggymetrics-gateway:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-auth-service.*|image: $REGISTRY/piggymetrics-auth-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-account-service.*|image: $REGISTRY/piggymetrics-account-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-statistics-service.*|image: $REGISTRY/piggymetrics-statistics-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-notification-service.*|image: $REGISTRY/piggymetrics-notification-service:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-monitoring.*|image: $REGISTRY/piggymetrics-monitoring:$TAG|g" "$file"
+          sed -i "s|image: *.*piggymetrics-turbine-stream-service.*|image: $REGISTRY/piggymetrics-turbine-stream-service:$TAG|g" "$file"
         done
         echo ""
 
