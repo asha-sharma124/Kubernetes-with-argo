@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: turbine-stream-service
-        image: asha515/piggymetrics-turbine-stream-services:latest
+        image: asha515/piggymetrics-turbine-stream-service:latest
         ports:
         - containerPort: 8989
         env:

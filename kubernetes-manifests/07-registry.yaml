@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: registry-service
-        image: asha515/piggymetrics-registrys:latest
+        image: asha515/piggymetrics-registry:latest
         ports:
         - containerPort: 8761
         env:

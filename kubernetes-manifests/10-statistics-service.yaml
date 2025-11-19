@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: statistics-service
-        image: asha515/piggymetrics-statistics-services:latest
+        image: asha515/piggymetrics-statistics-service:latest
         ports:
         - containerPort: 7000
         env:
