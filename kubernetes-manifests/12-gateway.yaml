@@ -16,7 +16,7 @@ spec:
       initContainers:
       - name: wait-for-config
         image: busybox:1.35
-        command: ['sh', '-c', 'until nslookup config-service.piggymetricss.svc.cluster.local; do echo waiting for config; sleep 2; done']
+        command: ['sh', '-c', 'until wget -qO- http://config-service:8888/actuator/health | grep -q "UP"; do echo waiting for config to be healthy; sleep 5; done']
       - name: wait-for-mongo
         image: busybox:1.35
         command: ['sh', '-c', 'until nslookup mongo.piggymetricss.svc.cluster.local; do echo waiting for mongo; sleep 2; done']
