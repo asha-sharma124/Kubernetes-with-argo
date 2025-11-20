@@ -16,7 +16,7 @@ spec:
       initContainers:
       - name: wait-for-config
         image: busybox:1.35
-        command: ['sh', '-c', 'until nslookup config.piggymetrics.svc.cluster.local; do echo waiting for config; sleep 2; done']
+        command: ['sh', '-c', 'until nslookup config-service.piggymetricss.svc.cluster.local; do echo waiting for config; sleep 2; done']
       containers:
       - name: statistics-service
         image: asha515/piggymetrics-statistics-service:latest
