@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: statistics-service
-  namespace: piggymetrics
+  namespace: piggymetricss
 spec:
   replicas: 1
   selector:
@@ -13,6 +13,10 @@ spec:
       labels:
         app: statistics-service
     spec:
+      initContainers:
+      - name: wait-for-config
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nslookup config.piggymetrics.svc.cluster.local; do echo waiting for config; sleep 2; done']
       containers:
       - name: statistics-service
         image: asha515/piggymetrics-statistics-service:latest
@@ -40,7 +44,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: statistics-service
-  namespace: piggymetrics
+  namespace: piggymetricss
 spec:
   selector:
     app: statistics-service

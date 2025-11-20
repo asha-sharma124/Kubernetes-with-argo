@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: piggymetrics-config
-  namespace: piggymetrics
+  namespace: piggymetricss
 data:
   CONFIG_SERVICE_PASSWORD: "password"
   NOTIFICATION_SERVICE_PASSWORD: "password"

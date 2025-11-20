@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: auth-mongodb
-  namespace: piggymetrics
+  namespace: piggymetricss
 spec:
   serviceName: auth-mongodb
   replicas: 1
@@ -42,7 +42,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: account-mongodb
-  namespace: piggymetrics
+  namespace: piggymetricss
 spec:
   serviceName: account-mongodb
   replicas: 1
@@ -84,7 +84,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: statistics-mongodb
-  namespace: piggymetrics
+  namespace: piggymetricss
 spec:
   serviceName: statistics-mongodb
   replicas: 1
@@ -124,7 +124,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: notification-mongodb
-  namespace: piggymetrics
+  namespace: piggymetricss
 spec:
   serviceName: notification-mongodb
   replicas: 1
