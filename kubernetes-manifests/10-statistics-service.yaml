@@ -13,6 +13,7 @@ spec:
       labels:
         app: statistics-service
     spec:
+     spec:
       initContainers:
       - name: wait-for-config
         image: busybox:1.35
