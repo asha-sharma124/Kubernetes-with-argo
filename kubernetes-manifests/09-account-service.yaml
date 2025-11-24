@@ -16,7 +16,12 @@ spec:
       initContainers:
       - name: wait-for-config
         image: busybox:1.35
-        command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config; sleep 5; done']
+        command: ['sh', '-c', 'until nc -z config-service.piggymetricss.svc.cluster.local 8888; do echo waiting for config; sleep 5; done']
+        env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
       containers:
       - name: account-service
         image: asha515/piggymetrics-account-service:latest
