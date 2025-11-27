@@ -19,7 +19,7 @@ spec:
         command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config; sleep 5; done']
       containers:
       - name: gateway
-        image: asha515/piggymetrics-gateway:20251127-125903-deba7c0
+        image: asha515/piggymetrics-gateway:20251127-130158-1add221
         ports:
         - containerPort: 4000
         env:
