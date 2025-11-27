@@ -1,0 +1,84 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Generate image tag
+      id: tag
+      run: |
+        TAG=$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "Generated tag: $TAG"
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push all services
+      run: |
+        TAG=${{ steps.tag.outputs.tag }}
+        DOCKER_USER=${{ secrets.DOCKER_USERNAME }}
+        
+        # Build and push each service
+        services=("auth-service" "account-service" "statistics-service" "notification-service" "gateway:gateway" "config:config-service" "registry:registry-service" "monitoring" "turbine-stream-service")
+        
+        for service in "${services[@]}"; do
+          IFS=':' read -r folder name <<< "$service"
+          if [ -z "$name" ]; then
+            name="$folder"
+          fi
+          
+          echo "Building $name from $folder..."
+          cd $folder
+          mvn clean package -DskipTests
+          docker build -t $DOCKER_USER/piggymetrics-$name:$TAG .
+          docker push $DOCKER_USER/piggymetrics-$name:$TAG
+          cd ..
+        done
+
+    - name: Update Kubernetes manifests
+      run: |
+        TAG=${{ steps.tag.outputs.tag }}
+        DOCKER_USER=${{ secrets.DOCKER_USERNAME }}
+        
+        # Update all manifest files
+        sed -i "s|image: asha515/piggymetrics-auth-service:.*|image: $DOCKER_USER/piggymetrics-auth-service:$TAG|g" kubernetes-manifests/08-auth-service.yaml
+        sed -i "s|image: asha515/piggymetrics-account-service:.*|image: $DOCKER_USER/piggymetrics-account-service:$TAG|g" kubernetes-manifests/09-account-service.yaml
+        sed -i "s|image: asha515/piggymetrics-statistics-service:.*|image: $DOCKER_USER/piggymetrics-statistics-service:$TAG|g" kubernetes-manifests/10-statistics-service.yaml
+        sed -i "s|image: asha515/piggymetrics-notification-service:.*|image: $DOCKER_USER/piggymetrics-notification-service:$TAG|g" kubernetes-manifests/11-notification-service.yaml
+        sed -i "s|image: asha515/piggymetrics-gateway:.*|image: $DOCKER_USER/piggymetrics-gateway:$TAG|g" kubernetes-manifests/12-gateway.yaml
+        sed -i "s|image: asha515/piggymetrics-config-service:.*|image: $DOCKER_USER/piggymetrics-config-service:$TAG|g" kubernetes-manifests/06-config-service.yaml
+        sed -i "s|image: asha515/piggymetrics-registry-service:.*|image: $DOCKER_USER/piggymetrics-registry-service:$TAG|g" kubernetes-manifests/07-registry.yaml
+        sed -i "s|image: asha515/piggymetrics-monitoring:.*|image: $DOCKER_USER/piggymetrics-monitoring:$TAG|g" kubernetes-manifests/13-monitoring.yaml
+        sed -i "s|image: asha515/piggymetrics-turbine-stream-service:.*|image: $DOCKER_USER/piggymetrics-turbine-stream-service:$TAG|g" kubernetes-manifests/14-turbine-stream.yaml
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add kubernetes-manifests/
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update Docker images to tag: ${{ steps.tag.outputs.tag }}"
+          git push origin main
+        fi
