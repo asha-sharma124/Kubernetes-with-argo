@@ -3,17 +3,8 @@ name: Build and Deploy
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'auth-service/**'
-      - 'account-service/**'
-      - 'statistics-service/**'
-      - 'notification-service/**'
-      - 'gateway/**'
-      - 'config/**'
-      - 'registry/**'
-      - 'monitoring/**'
-      - 'turbine-stream-service/**'
-      - '.github/workflows/**'
+    paths-ignore:
+      - 'kubernetes-manifests/**'
 
 jobs:
   build-and-push:
