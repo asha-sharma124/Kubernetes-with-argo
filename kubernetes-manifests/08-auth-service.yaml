@@ -17,6 +17,9 @@ spec:
       - name: wait-for-config
         image: busybox:1.35
         command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config; sleep 5; done']
+      - name: wait-for-mongodb
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z auth-mongodb.piggymetricss.svc.cluster.local 27017; do echo waiting for mongodb; sleep 5; done']
       containers:
       - name: auth-service
         image: asha515/piggymetrics-auth-service:latest
@@ -49,10 +52,23 @@ spec:
               name: piggymetrics-config
               key: MONGODB_PASSWORD
         readinessProbe:
+          httpGet:
+            path: /uaa/actuator/health
+            port: 5000
+            httpHeaders:
+            - name: Authorization
+              value: "Basic Y2xpZW50OnNlY3JldA=="
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
           tcpSocket:
             port: 5000
-          initialDelaySeconds: 60
-          periodSeconds: 10
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 apiVersion: v1
