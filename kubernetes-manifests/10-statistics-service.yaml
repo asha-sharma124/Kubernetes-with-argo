@@ -42,8 +42,7 @@ spec:
               name: piggymetrics-config
               key: STATISTICS_SERVICE_PASSWORD
         readinessProbe:
-          httpGet:
-            path: /statistics/actuator/health
+          tcpSocket:
             port: 7000
           initialDelaySeconds: 90
           periodSeconds: 10

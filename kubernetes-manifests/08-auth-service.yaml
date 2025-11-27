@@ -52,12 +52,8 @@ spec:
               name: piggymetrics-config
               key: MONGODB_PASSWORD
         readinessProbe:
-          httpGet:
-            path: /uaa/actuator/health
+          tcpSocket:
             port: 5000
-            httpHeaders:
-            - name: Authorization
-              value: "Basic Y2xpZW50OnNlY3JldA=="
           initialDelaySeconds: 90
           periodSeconds: 10
           timeoutSeconds: 5
