@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: monitoring
-        image: asha515/piggymetrics-monitoring:20251127-140202-aec37ed
+        image: asha515/piggymetrics-monitoring:20251127-153930-546d462
         ports:
         - containerPort: 8080
         env:
