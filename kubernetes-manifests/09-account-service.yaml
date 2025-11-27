@@ -17,11 +17,9 @@ spec:
       - name: wait-for-config
         image: busybox:1.35
         command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config; sleep 5; done']
-        env:
-        - name: KUBERNETES_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+      - name: wait-for-mongodb
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z account-mongodb.piggymetricss.svc.cluster.local 27017; do echo waiting for mongodb; sleep 5; done']
       containers:
       - name: account-service
         image: asha515/piggymetrics-account-service:latest
@@ -44,10 +42,20 @@ spec:
               name: piggymetrics-config
               key: MONGODB_PASSWORD
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /accounts/actuator/health
             port: 6000
           initialDelaySeconds: 90
           periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 6000
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 apiVersion: v1
