@@ -21,7 +21,7 @@ spec:
       - name: turbine-stream-service
         image: asha515/piggymetrics-turbine-stream-service:20251130-083340-eeb2e58
         ports:
-        - containerPort: 8989
+        - containerPort: 8080
         env:
         - name: CONFIG_SERVICE_PASSWORD
           valueFrom:
@@ -30,15 +30,15 @@ spec:
               key: CONFIG_SERVICE_PASSWORD
         readinessProbe:
           tcpSocket:
-            port: 8989
-          initialDelaySeconds: 360
+            port: 8080
+          initialDelaySeconds: 180
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 6
         livenessProbe:
           tcpSocket:
-            port: 8989
-          initialDelaySeconds: 420
+            port: 8080
+          initialDelaySeconds: 240
           periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 3
@@ -54,5 +54,5 @@ spec:
     app: turbine-stream-service
   ports:
   - port: 8989
-    targetPort: 8989
+    targetPort: 8080
   type: ClusterIP
