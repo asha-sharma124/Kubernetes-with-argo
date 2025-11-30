@@ -19,7 +19,7 @@ spec:
         command: ['sh', '-c', 'until nc -z config-service.piggymetricss.svc.cluster.local 8888; do echo waiting for config; sleep 5; done']
       containers:
       - name: monitoring
-        image: asha515/piggymetrics-monitoring:20251130-083340-eeb2e58
+        image: asha515/piggymetrics-monitoring:20251130-084942-2758ae7
         ports:
         - containerPort: 8080
         env:
