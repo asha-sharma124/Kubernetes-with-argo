@@ -19,7 +19,7 @@ spec:
         command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config; sleep 5; done']
       containers:
       - name: registry-service
-        image: asha515/piggymetrics-registry-service:20251130-092629-ef4ce67
+        image: asha515/piggymetrics-registry-service:20251130-094246-dd22320
         ports:
         - containerPort: 8761
         env:
