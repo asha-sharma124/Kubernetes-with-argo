@@ -16,7 +16,10 @@ spec:
       initContainers:
       - name: wait-for-config
         image: busybox:1.35
-        command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config; sleep 5; done']
+        command: ['sh', '-c', 'until nc -z config-service.piggymetricss.svc.cluster.local 8888; do echo waiting for config; sleep 5; done']
+      - name: wait-for-registry
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z registry-service.piggymetricss.svc.cluster.local 8761; do echo waiting for registry; sleep 5; done']
       containers:
       - name: gateway
         image: asha515/piggymetrics-gateway:20251130-082600-71aed67
@@ -32,16 +35,18 @@ spec:
           httpGet:
             path: /
             port: 4000
-          initialDelaySeconds: 120
+          initialDelaySeconds: 360
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 6
         livenessProbe:
           httpGet:
             path: /
             port: 4000
-          initialDelaySeconds: 240
+          initialDelaySeconds: 420
           periodSeconds: 30
           timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 apiVersion: v1

@@ -13,10 +13,13 @@ spec:
       labels:
         app: monitoring
     spec:
-      
+      initContainers:
+      - name: wait-for-config
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z config-service.piggymetricss.svc.cluster.local 8888; do echo waiting for config; sleep 5; done']
       containers:
       - name: monitoring
-        image: asha515/piggymetrics-monitoring:20251130-082600-71aed67
+        image: asha515/piggymetrics-monitoring:20251130-080513-081822c
         ports:
         - containerPort: 8080
         env:
@@ -27,18 +30,20 @@ spec:
               key: CONFIG_SERVICE_PASSWORD
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /
             port: 8080
-          initialDelaySeconds: 60
+          initialDelaySeconds: 360
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 6
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /
             port: 8080
-          initialDelaySeconds: 120
-          periodSeconds: 15
+          initialDelaySeconds: 420
+          periodSeconds: 30
           timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 apiVersion: v1

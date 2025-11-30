@@ -44,14 +44,14 @@ spec:
         readinessProbe:
           tcpSocket:
             port: 7000
-          initialDelaySeconds: 180
+          initialDelaySeconds: 360
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 30
+          failureThreshold: 6
         livenessProbe:
           tcpSocket:
             port: 7000
-          initialDelaySeconds: 300
+          initialDelaySeconds: 420
           periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 3
