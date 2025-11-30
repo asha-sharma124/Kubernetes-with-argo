@@ -13,6 +13,10 @@ spec:
       labels:
         app: turbine-stream-service
     spec:
+      initContainers:
+      - name: wait-for-config
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z config-service 8888; do echo waiting for config; sleep 5; done']
       containers:
       - name: turbine-stream-service
         image: asha515/piggymetrics-turbine-stream-service:20251127-140202-aec37ed
@@ -24,6 +28,20 @@ spec:
             configMapKeyRef:
               name: piggymetrics-config
               key: CONFIG_SERVICE_PASSWORD
+        readinessProbe:
+          tcpSocket:
+            port: 8989
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 8989
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 apiVersion: v1
